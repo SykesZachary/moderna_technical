@@ -2,8 +2,7 @@
 # 07.05.2021 - Zachary Sykes
 
 from Bio import SeqIO
-# import itertools
-import os
+import itertools
 
 
 class SeqManipulation:
@@ -43,7 +42,35 @@ class SeqManipulation:
 
         return prot
 
-    # Reverse translates RNA into protein based on codon set provided
+    # Generator to reverse translate RNA into protein based on codon set provided
     def reverse_translate(self, codons):
-        pass
+        # identifies possible seq and stores it -- May be far too intense
+        rna_seq_lst = [codons[aa] for aa in self.seq]
+        for comb in itertools.product(*rna_seq_lst):
+            yield ''.join(comb)
 
+    # Returns the reverse complement of DNA for cDNA handling
+    def reverse_complement(self):
+        # Base complements
+        complement = {'A': 'T', 'C': 'G', 'G': 'C', 'T': 'A'}
+
+        bases = list(self.seq)
+        bases = reversed([complement.get(base, base) for base in bases])
+        bases = ''.join(bases)
+
+        return bases
+
+    # Returns information about the sequence provided
+    def seq_stats(self, seq_type):
+        # Helps convert fasta files fed as Seq type
+        self.seq = str(self.seq)
+
+        # TODO - Need to return base densities for nuc seq
+        if seq_type == 'aa':
+            return len(self.seq)
+        elif seq_type == 'dna':
+            return len(self.seq)
+        elif seq_type == 'rna':
+            return len(self.seq)
+        else:
+            raise TypeError('Please enter "aa", "dna", or "rna" for seq_type arg')
