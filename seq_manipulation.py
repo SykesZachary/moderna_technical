@@ -11,17 +11,21 @@ class SeqManipulation:
         self.seq = seq
 
     # Transcribes DNA into RNA
-    def transcribe(self, rna_poly='t7'):
+    def transcribe(self, rna_poly=False):
         self.seq = str(self.seq)
 
         # TODO - Add other rna polymerase promoter regions
-        # TODO - Add dna manipulation via promotor
         if rna_poly == 't7':
+            # TODO - Add dna manipulation via promoter
             promoter = Seq('TAATACGACTCACTATAGGGAGA')  # Promoter sequence for T7 RNA polymerase
 
-        # Storing seq to be returned
-        transcribed_seq = self.seq.replace('T', 'U')
-        return transcribed_seq
+            # Storing seq to be returned
+            transcribed_seq = self.seq.replace('T', 'U')
+            return transcribed_seq
+        else:
+            # Storing seq to be returned
+            transcribed_seq = self.seq.replace('T', 'U')
+            return transcribed_seq
 
     # Translates seq into protein
     def translate(self, codons, seq_type='rna'):
@@ -41,7 +45,7 @@ class SeqManipulation:
 
         while i < len(self.seq):
             for k, v in codons.items():
-                if self.seq[i:(i + 3)] in v:
+                if self.seq[i:(i + 3)] in v[0]:
                     if k == 'Stop':
                         break
                     else:
@@ -52,10 +56,22 @@ class SeqManipulation:
 
     # Generator to reverse translate RNA into protein based on codon set provided
     def reverse_translate(self, codons):
-        # identifies possible seq and stores it -- May be far too intense
-        rna_seq_lst = [codons[aa] for aa in self.seq]
-        for comb in itertools.product(*rna_seq_lst):
-            yield ''.join(comb)
+        # Ensures codon table provided is a dictionary
+        if type(codons) is not dict:
+            raise TypeError('Please provide a dictionary for the codons argument')
+
+        # Identifies possible seq and stores it based on codon usage frequency provided
+        rna_seq_lst = list()
+        for aa in self.seq:
+            if aa in codons.keys():
+                highest_freq = 0.0
+                likely_codon = None
+                for codon in codons[aa]:
+                    if codon[1] > highest_freq:
+                        highest_freq = codon[1]
+                        likely_codon = codon
+                rna_seq_lst.append(likely_codon[0])
+        return ''.join(rna_seq_lst)
 
     # Returns the reverse complement of DNA for cDNA handling
     def reverse_complement(self):
