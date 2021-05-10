@@ -25,17 +25,17 @@ def data_extraction(path, file):
                     data.append(line)
                 else:
                     string += line
-        data.insert(0, string)
+        data.insert(0, str(string))
         return data
 
 
-def file_output(path, filename, data):
+def file_output(path, filename, title, data):
     # CWD to output directory
     os.chdir(path)
 
     # Opening output file and writing to it
     out_file = open(filename, 'w+')
-    out_file.write(filename)
+    out_file.write(f'>{title}')
     out_file.write('\n')
 
     # Splitting the lines into lengths of 80 aa or bases
