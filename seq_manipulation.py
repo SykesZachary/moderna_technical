@@ -1,7 +1,6 @@
 # Class containing sequence manipulation methods
 # 07.05.2021 - Zachary Sykes
 
-import itertools
 from Bio.Seq import Seq
 
 
@@ -10,8 +9,8 @@ class SeqManipulation:
     def __init__(self, seq):
         self.seq = seq
 
-    # Transcribes DNA into RNA
-    def transcribe(self, rna_poly=False):
+    # Transcribes DNA into RNA -- Work in Progress
+    def transcribe(self, rna_poly=None):
         self.seq = str(self.seq)
 
         # TODO - Add other rna polymerase promoter regions
@@ -28,29 +27,11 @@ class SeqManipulation:
             return transcribed_seq
 
     # Translates seq into protein
-    def translate(self, codons, seq_type='rna'):
+    def translate(self, seq_type='rna'):
         self.seq = str(self.seq)
-        # Storing aa seq to be returned
-        prot = ''
-        i = 0  # Counter for while loop
 
-        # Ensures codon table provided is a dictionary
-        if type(codons) is not dict:
-            raise TypeError('Please provide a dictionary for the codons argument')
-
-        # Transcribes DNA to RNA prior to translation
-        if seq_type == 'dna':
-            sm = SeqManipulation(self.seq)  # Initializing the class
-            self.seq = sm.transcribe()  # Calling the previous method
-
-        while i < len(self.seq):
-            for k, v in codons.items():
-                if self.seq[i:(i + 3)] in v[0]:
-                    if k == 'Stop':
-                        break
-                    else:
-                        prot += k
-            i += 1
+        # Using Biopython for simplicity
+        prot = self.seq.translate()
 
         return prot
 
@@ -64,6 +45,7 @@ class SeqManipulation:
         rna_seq_lst = list()
         for aa in self.seq:
             if aa in codons.keys():
+                # TODO - Identify how GC content effects the codon selected
                 highest_freq = 0.0
                 likely_codon = None
                 for codon in codons[aa]:
@@ -71,17 +53,28 @@ class SeqManipulation:
                         highest_freq = codon[1]
                         likely_codon = codon
                 rna_seq_lst.append(likely_codon[0])
+
+        # Adding all three stop codons to the final sequence
+        # In order from highest to lowest frequency in Human codon usage bias
+        for stop_codon in ['UGA', 'UAA', 'UAG']:
+            rna_seq_lst.append(stop_codon)
+
         return ''.join(rna_seq_lst)
 
-    # Returns the reverse complement of DNA for cDNA handling
-    def reverse_complement(self):
+    # Returns the reverse complement of DNA
+    def reverse_complement(self, reverse=False):
         self.seq = str(self.seq)
         # Base complements
         complement = {'A': 'T', 'C': 'G', 'G': 'C', 'T': 'A'}
 
-        bases = list(self.seq)
-        bases = reversed([complement.get(base, base) for base in bases])
-        bases = ''.join(bases)
+        if reverse:
+            bases = list(self.seq)
+            bases = reversed([complement.get(base, base) for base in bases])
+            bases = ''.join(bases)
+        else:
+            bases = list(self.seq)
+            bases = [complement.get(base, base) for base in bases]
+            bases = ''.join(bases)
 
         return bases
 
@@ -90,8 +83,8 @@ class SeqManipulation:
         i = 0
         while i < (len(self.seq) - len(substring)):
             if self.seq[i:i + len(substring)] == substring:
-                print('Substring found')
-                return len(self.seq[:i + 1])  # Starting index for specified motif returned
+                print('Substring found:', end=' ')
+                return len(self.seq[:i])  # Starting index for specified motif returned
             i += 1
 
     # Returns information about the sequence provided
